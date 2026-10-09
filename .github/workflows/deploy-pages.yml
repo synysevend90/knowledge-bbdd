@@ -27,6 +27,9 @@ jobs:
         run: |
           mkdir _site
           unzip -q website-source.zip -d _site
+      - name: Apply site overlays
+        run: |
+          if [ -d pages-overlay/site ]; then cp -a pages-overlay/site/. _site/; fi
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload Pages artifact
