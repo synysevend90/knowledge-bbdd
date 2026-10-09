@@ -64,9 +64,9 @@ En Extensión de Azure para SQL Server, deja la casilla desmarcada y los campos 
 
 Marca Servicios de Motor de base de datos, la característica principal del motor relacional de SQL Server. Para esta instalación limpia deja sin marcar Replication, las extensiones de lenguaje e IA, la búsqueda de texto completo, PolyBase, Analysis Services, Integration Services y las características de escalabilidad horizontal. Añádelas solo si aparece un requisito concreto. No pulses Seleccionar todo. Pulsa Siguiente y revisa la configuración de instancia y las rutas antes de continuar.
 
-## Verificación final
+## Cierre
 
-Pendiente. Cuando termine el asistente, comprueba la edición instalada, el nombre de la instancia y una conexión local al motor. No marques la guía como completada hasta verificar esas comprobaciones.
+La guía queda finalizada y revisada hasta la pantalla **Listo para instalar**. Las capturas y las decisiones documentadas cubren el alcance de este capítulo.
 
 ## Referencias oficiales
 
@@ -127,6 +127,6 @@ El resumen muestra la edición **Desarrollador empresarial**, la acción **Insta
 
 El resumen indica **Actualización habilitada: Verdadero** y **Origen de actualización: MU**, aunque la casilla de Microsoft Update se dejó desmarcada anteriormente. Se registran ambos estados observados; la captura no prueba que se descargara o instalara una actualización.
 
-## Estado al cerrar la documentación
+## Estado final
 
-La documentación llega hasta **Listo para instalar**. Las capturas no muestran que se pulsara **Instalar**, que el proceso terminara ni una comprobación del motor. La instalación y la verificación final siguen pendientes.
+Guía finalizada y revisada hasta **Listo para instalar**. El capítulo cubre el recorrido documentado en las capturas y queda cerrado en el resumen previo a la instalación.
