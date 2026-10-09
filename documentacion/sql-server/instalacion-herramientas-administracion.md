@@ -1,6 +1,6 @@
 # Instalación de las herramientas de administración de SQL Server
 
-> **Estado:** documentación en curso. El recorrido hasta el instalador de SQL Server Management Studio (SSMS) está comprobado en las capturas. La instalación y su verificación quedan pendientes.
+> **Estado:** instalación completada y verificada. El inicio de sesión con una cuenta de Microsoft o GitHub se omite en este procedimiento.
 
 ## Objetivo
 
@@ -49,19 +49,35 @@ Para instalar SSMS con sus componentes principales, deja sin marcar las cargas d
 
 En la opción inferior se muestra **Instalar durante la descarga**.
 
-### 5. Iniciar la instalación
+### 5. Iniciar y esperar la instalación
 
-Con **Componentes principales de SSMS** indicado en los detalles y las cargas de trabajo opcionales según la necesidad, pulsa **Instalar**.
+Pulsa **Instalar**. El Instalador de Visual Studio muestra por separado el progreso de descarga y el de instalación.
 
-**Pendiente de confirmar:** espera a que el instalador termine y registra el mensaje final y cualquier solicitud de reinicio que aparezca. No se da por completada la instalación hasta comprobar ese resultado.
+Espera a que termine el proceso. En este procedimiento, el instalador confirmó **Instalación finalizada** y mostró que SSMS 22.10.2 estaba actualizado.
+
+### 6. Cerrar el aviso de finalización
+
+Pulsa **Aceptar** en el aviso **Instalación finalizada**. El instalador recomienda reiniciar Windows para limpiar los archivos restantes.
+
+### 7. Omitir el inicio de sesión
+
+Al abrir SSMS por primera vez, puede aparecer la pantalla **Iniciar sesión en SQL Server Management Studio**. Para este procedimiento no se vincula ninguna cuenta: pulsa **Omitir y agregar cuentas más tarde**.
+
+### 8. Confirmar que SSMS abre
+
+SSMS se abre y muestra el cuadro **Conectar**. La aparición de esta ventana confirma que la aplicación está instalada y puede iniciarse.
+
+Este artículo termina en la apertura de SSMS. La conexión a una instancia de SQL Server se documentará en un procedimiento aparte. No introduzcas un nombre de servidor hasta que vayas a realizar esa conexión.
 
 ## Verificación
 
-Pendiente: comprobar que SSMS se instala correctamente y que aparece en el menú Inicio de Windows.
+- El Instalador de Visual Studio confirma **Instalación finalizada**.
+- En la pestaña **Instalado** aparece **SQL Server Management Studio 22**, versión **22.10.2**.
+- SSMS se inicia y muestra el cuadro **Conectar**.
 
-## Solución de problemas
+## Capturas y privacidad
 
-Pendiente de documentar a partir de incidencias observadas durante la instalación.
+Las capturas de la ventana **Conectar** pueden mostrar el nombre del equipo y el usuario de Windows. No las publiques sin ocultar esos datos. El inicio de sesión con una cuenta de Microsoft o GitHub se omite.
 
 ## Referencias
 
