@@ -1,45 +1,23 @@
-# Instalación de SQL Server 2025 Developer
+# Instalación de SQL Server 2025 Enterprise Developer
 
-> **Estado: guía en curso.** Se documentan los pasos confirmados hasta la selección de características del motor. La instalación completa y su verificación final quedan pendientes de recuperar y contrastar con el resultado observado en el equipo.
+> **Estado: instalación en curso.** Esta guía documenta los pasos confirmados hasta la selección de características. La instalación del motor y la verificación final siguen pendientes.
 
-## Objetivo
+## Alcance y requisitos
 
-Documentar la instalación independiente de SQL Server 2025 Developer en Windows, siguiendo las pantallas reales del Centro de instalación. Esta guía no cubre la instalación de SSMS, que cuenta con un procedimiento separado.
+- Producto: SQL Server 2025 Enterprise Developer.
+- Tipo: instalación limpia del motor de base de datos en Windows.
+- Topología: instancia independiente; el equipo no se une a un dominio de Active Directory como parte de este procedimiento.
+- Uso: desarrollo y pruebas, fuera de producción.
+- Las cuentas de servicio, la instancia, las rutas y la autenticación se decidirán según las pantallas reales, sin asumir valores de antemano.
 
-## Procedimiento confirmado
+## Procedimiento
 
-### 1. Iniciar la instalación
+### 1. Abrir la instalación personalizada\n\nEjecuta el iniciador de SQL Server 2025. En la primera pantalla aparecen Basic, Custom y Download Media; selecciona Custom para abrir el asistente detallado y revisar la configuración antes de instalar. No elijas Basic porque esta guía requiere controlar los componentes y las opciones de la instancia. El encabezado del iniciador dice “Evaluation Edition”, pero no determina la edición que se instalará; se elige en el asistente.\n\n### 2. Elegir la ubicación de descarga\n\nEn Specify SQL Server media download target location, el idioma aparece como Spanish y la ruta propuesta es C:\\SQL2025. La pantalla indica 8752 MB de espacio libre mínimo y un tamaño de descarga de 1311 MB. Comprueba el espacio disponible y la carpeta. Pulsa Install para adquirir los archivos.\n\n### 3. Esperar a que se adquieran los archivos\n\nEl iniciador muestra Downloading install package... y Acquiring setup files... durante la descarga. Espera a que termine la adquisición antes de continuar. La versión visible del iniciador es 17.0.1000.7.\n\n### 4. Abrir la sección de instalación\n\nCuando aparezca el Centro de instalación de SQL Server, selecciona Instalación en el menú de la izquierda.\n\n### 5. Iniciar una instalación independiente\n\nEn la página Instalación, selecciona Nueva instalación independiente de SQL Server o agregar características a una instalación existente para iniciar una instancia nueva.\n\n### 6. Seleccionar Enterprise Developer\n\nEn Edición, cambia la selección inicial Evaluation por Enterprise Developer. La descripción del asistente indica que Developer no caduca, incluye las características de Enterprise y se licencia para desarrollo y pruebas, no para producción. Comprueba el valor antes de continuar.\n\n### 7. Revisar y aceptar los términos de licencia\n\nLa pantalla identifica SQL Server 2025 Enterprise Developer Edition. Lee los términos y la declaración de privacidad. Acepta la casilla solo si estás de acuerdo y pulsa Siguiente.\n\n### 8. Esperar la comprobación de reglas globales\n\nEspera a que termine Comprobación de reglas en curso... y revisa su resultado antes de continuar.\n\n### 9. Dejar Microsoft Update desmarcado\n\nDeja sin marcar Usar Microsoft Update para comprobar las actualizaciones. Esta decisión omite Microsoft Update en este paso; la gestión de parches se hará después de forma controlada.\n\n### 10. Revisar el estado de los archivos de configuración\n\nLa tabla observada mostraba Buscar actualizaciones de producto: Completado, Descargar archivos del programa de configuración: Omitido, Extraer archivos del programa de configuración: Omitido e Instalar archivos del programa de configuración: No iniciado. Conserva esos estados tal como aparecen; la comprobación de actualizaciones no demuestra que se haya instalado una actualización. Revisa la pantalla siguiente antes de avanzar.\n\n### 11. Continuar pese a la advertencia del Firewall\n\nEl resumen observado indica 4 reglas correctas, 0 incumplidas, 1 advertencia y 0 omitidas. La advertencia corresponde a Firewall de Windows y explica que hay que abrir puertos para permitir el acceso remoto. Para esta instalación local puedes continuar sin cambiar el Firewall. No abras puertos sin necesitarlos; si posteriormente se requiere acceso remoto, configura entonces el puerto y la regla específicos.\n\n### 12. Omitir la extensión de Azure\n\nEn Extensión de Azure para SQL Server, deja la casilla desmarcada y los campos sin completar. Esta instalación independiente no requiere conectarse a Azure. Pulsa Siguiente.\n\n### 13. Seleccionar solo el motor de base de datos\n\nMarca Servicios de Motor de base de datos, la característica principal del motor relacional de SQL Server. Para esta instalación limpia deja sin marcar Replication, las extensiones de lenguaje e IA, la búsqueda de texto completo, PolyBase, Analysis Services, Integration Services y las características de escalabilidad horizontal. Añádelas solo si aparece un requisito concreto. No pulses Seleccionar todo. Pulsa Siguiente y revisa la configuración de instancia y las rutas antes de continuar.
 
-Abre el Centro de instalación de SQL Server 2025 y comienza una instalación independiente de SQL Server. La primera pantalla del asistente confirma el inicio del procedimiento.
+## Verificación final
 
-### 2. Descargar el medio e iniciar el Centro de instalación
+Pendiente. Cuando termine el asistente, comprueba la edición instalada, el nombre de la instancia y una conexión local al motor. No marques la guía como completada hasta verificar esas comprobaciones.
 
-Continúa con la descarga del medio de instalación y abre el Centro de instalación desde el asistente. Los nombres y opciones deben seguirse tal como aparecen en la versión descargada.
+## Referencias oficiales
 
-### 3. Seleccionar la edición
-
-Selecciona la edición **Developer** para el entorno de aprendizaje y desarrollo documentado aquí. Comprueba que la edición indicada en pantalla es Developer antes de continuar.
-
-### 4. Microsoft Update
-
-En la pantalla de Microsoft Update, deja deshabilitada la búsqueda de actualizaciones durante esta instalación. La opción se omitió en el procedimiento documentado; no se debe presentar como necesaria para completar la instalación.
-
-### 5. Reglas de instalación y firewall
-
-Revisa el resultado de las reglas de instalación y continúa con las opciones que correspondan al equipo. Si aparece una advertencia relacionada con el Firewall de Windows, se puede continuar sin cambiar la configuración del firewall para esta instalación local del laboratorio. No se documenta desactivar el firewall ni crear reglas manuales.
-
-### 6. Azure
-
-En la configuración relacionada con Azure, no habilites una integración de Azure que no forme parte del objetivo de esta instalación local.
-
-### 7. Seleccionar características del motor
-
-En la selección de características, el procedimiento se centra en instalar el motor de base de datos de SQL Server. Revisa la pantalla real antes de marcar componentes adicionales; no se deben seleccionar características opcionales sin una necesidad concreta.
-
-## Punto pendiente
-
-La secuencia recuperable llega hasta la pantalla de selección de características. Para documentar con seguridad las pantallas posteriores, hay que confirmar el resultado real de la configuración de instancia, la configuración del servidor, la preparación de la instalación, el progreso, el resultado final y las comprobaciones en Windows. La guía no afirma que SQL Server haya quedado instalado correctamente mientras esos resultados no estén verificados.
-
-## Criterio de cierre
-
-La guía podrá marcarse como completada cuando se confirme la instalación finalizada y se verifique que el servicio o la instancia instalada aparecen en el equipo. Si se añaden capturas, oculta nombres de equipo, usuarios, identificadores y cualquier otro dato privado que aparezca en ellas.
+- [Descargas de SQL Server de Microsoft](https://www.microsoft.com/es-es/sql-server/sql-server-downloads).\n- [Instalar SQL Server desde el asistente gráfico](https://learn.microsoft.com/es-es/sql/database-engine/install-windows/install-sql-server-from-the-installation-wizard-setup?view=sql-server-ver17).\n- [Ediciones y características de SQL Server 2025](https://learn.microsoft.com/es-es/sql/sql-server/editions-and-components-of-sql-server-2025?view=sql-server-ver17).\n- [Configurar el Firewall de Windows para el acceso al motor de base de datos](https://learn.microsoft.com/en-us/sql/database-engine/configure-windows/configure-a-windows-firewall-for-database-engine-access?view=sql-server-ver17).\n- [Instalar el motor de base de datos de SQL Server](https://learn.microsoft.com/en-us/sql/database-engine/install-windows/install-sql-server-database-engine?view=sql-server-ver17).
