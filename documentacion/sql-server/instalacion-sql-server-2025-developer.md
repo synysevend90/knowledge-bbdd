@@ -1,6 +1,6 @@
 # Instalación de SQL Server 2025 Enterprise Developer
 
-> **Estado: instalación en curso.** Esta guía documenta los pasos confirmados hasta la selección de características. La instalación del motor y la verificación final siguen pendientes.
+> **Estado: documentación completa hasta «Listo para instalar».** La instalación del motor y la verificación final no aparecen en las capturas y siguen sin confirmarse.
 
 ## Alcance y requisitos
 
