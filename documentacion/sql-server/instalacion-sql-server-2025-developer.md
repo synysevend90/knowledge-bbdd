@@ -1,6 +1,6 @@
 # Instalación de SQL Server 2025 Enterprise Developer
 
-> **Estado: instalación en curso.** Esta guía documenta los pasos confirmados hasta la selección de características. La instalación del motor y la verificación final siguen pendientes.
+> **Estado: documentación completa hasta «Listo para instalar».** La instalación del motor y la verificación final no aparecen en las capturas y siguen sin confirmarse.
 
 ## Alcance y requisitos
 
@@ -75,3 +75,54 @@ Pendiente. Cuando termine el asistente, comprueba la edición instalada, el nomb
 - [Ediciones y características de SQL Server 2025](https://learn.microsoft.com/es-es/sql/sql-server/editions-and-components-of-sql-server-2025?view=sql-server-ver17).
 - [Configurar el Firewall de Windows para el acceso al motor de base de datos](https://learn.microsoft.com/en-us/sql/database-engine/configure-windows/configure-a-windows-firewall-for-database-engine-access?view=sql-server-ver17).
 - [Instalar el motor de base de datos de SQL Server](https://learn.microsoft.com/en-us/sql/database-engine/install-windows/install-sql-server-database-engine?view=sql-server-ver17).
+
+
+## Continuación: configuración de instancia y del motor
+
+La documentación queda cerrada hasta la pantalla **Listo para instalar**. Estas capturas completan la configuración previa; no muestran la instalación ejecutada ni su verificación final. Tres capturas repetidas del mismo aviso de validación se han consolidado en una sola imagen.
+
+### 13. Confirmar la selección del motor
+
+En la pantalla de características queda seleccionada **Servicios de Motor de base de datos** y las características opcionales permanecen sin marcar.
+
+![Servicios de Motor de base de datos seleccionado](../../pages-overlay/site/sql-server/instalacion-sql-server-2025-developer/configuracion-instancia/images/13-seleccion-motor.png)
+
+### 14. Configurar una instancia con nombre
+
+Selecciona **Instancia con nombre** y comprueba que el nombre y el identificador muestran `ServidorSinAD`. El asistente propone una ruta asociada a `MSSQL17.ServidorSinAD`.
+
+![Configuración de la instancia con nombre ServidorSinAD](../../pages-overlay/site/sql-server/instalacion-sql-server-2025-developer/configuracion-instancia/images/14-configuracion-instancia.png)
+
+### 15. Revisar las cuentas de servicio
+
+La captura muestra el Agente SQL Server con inicio **Manual**, el Motor de base de datos con inicio **Automático** y SQL Server Browser **Deshabilitado**. Los nombres de cuenta se ven truncados. La opción para conceder el privilegio de mantenimiento de volúmenes aparece desmarcada.
+
+![Tipos de inicio observados para los servicios de SQL Server](../../pages-overlay/site/sql-server/instalacion-sql-server-2025-developer/configuracion-instancia/images/15-cuentas-de-servicio.png)
+
+### 16. Añadir al menos una cuenta administradora
+
+El asistente impide continuar si la lista de administradores de SQL Server está vacía. Añade la cuenta local actual u otra cuenta que deba administrar el motor.
+
+![Validación que exige una cuenta administradora de SQL Server](../../pages-overlay/site/sql-server/instalacion-sql-server-2025-developer/configuracion-instancia/images/16-falta-administrador-sql.png)
+
+En esta instalación se eligió el modo mixto y se añadió la cuenta local actual a la lista de administradores. Los campos de contraseña aparecen enmascarados. La imagen publicada oculta el identificador del equipo y no contiene la contraseña.
+
+![Modo mixto y cuenta local administradora con la identidad del equipo oculta](../../pages-overlay/site/sql-server/instalacion-sql-server-2025-developer/configuracion-instancia/images/17-configuracion-del-motor-administrador-anonimizado.png)
+
+### 17. Esperar las reglas de configuración de características
+
+Espera a que termine la comprobación y revisa el resultado. La captura disponible muestra la comprobación en curso, no el resultado final.
+
+![Reglas de configuración de características en curso](../../pages-overlay/site/sql-server/instalacion-sql-server-2025-developer/configuracion-instancia/images/18-reglas-de-caracteristicas.png)
+
+### 18. Revisar el resumen antes de instalar
+
+El resumen indica la edición **Desarrollador empresarial**, la acción **Instalar**, la característica **Servicios de Motor de base de datos** y la instancia `SERVIDORSINAD`. Revisa la configuración antes de pulsar **Instalar**.
+
+![Resumen del instalador en la pantalla Listo para instalar](../../pages-overlay/site/sql-server/instalacion-sql-server-2025-developer/configuracion-instancia/images/19-listo-para-instalar.png)
+
+En ese resumen aparece **Actualización habilitada: Verdadero** y **Origen de actualización: MU**, aunque anteriormente se dejó sin marcar **Usar Microsoft Update para comprobar las actualizaciones**. Conservamos ambos estados tal como aparecen; el resumen no demuestra que se haya descargado o instalado una actualización.
+
+### Estado al cerrar el capítulo
+
+La documentación del asistente queda completa hasta **Listo para instalar**. Las capturas no muestran que se haya pulsado **Instalar**, que el proceso haya finalizado ni que el motor se haya verificado; por eso no se afirma que SQL Server esté instalado.
