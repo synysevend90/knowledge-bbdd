@@ -44,25 +44,35 @@ En la ventana **Cambios en el dominio o el nombre del equipo**, se seleccionó *
 
 Este mensaje no permite concluir por sí solo que la contraseña sea incorrecta. Hay que comprobar que se escribió el nombre DNS del dominio y que el DNS del servidor puede encontrar los registros de localización del controlador de dominio.
 
-### Diagnosticar el nombre y la resolución DNS
+### Diagnosticar la consulta de Active Directory y el DNS
 
-En el controlador de dominio, abre PowerShell y consulta los nombres DNS y NetBIOS reales del dominio:
+La consulta siguiente se intentó ejecutar desde PowerShell:
 
 ```powershell
 Get-ADDomain | Select-Object DNSRoot, NetBIOSName
 ```
 
-En la ventana de unión debe usarse el valor **DNSRoot**, no un nombre NetBIOS abreviado. No añadas un sufijo como `.local` por suposición; utiliza el valor devuelto por el controlador de dominio.
+La captura muestra una excepción `ADException`, con identificador `ActiveDirectoryServer:8250` y el mensaje **El servidor no es funcional**. El resultado no incluye DNSRoot ni NetBIOSName. La captura no permite confirmar en qué equipo se ejecutó PowerShell, por lo que todavía no se puede distinguir si el comando se ejecutó desde el servidor SQL sin unir o desde el propio controlador de dominio.
 
-Después, desde el servidor SQL, comprueba si el DNS preferido devuelve el registro SRV LDAP del dominio, sustituyendo el marcador por el valor real de **DNSRoot**:
+Primero, ejecuta esta comprobación en PowerShell **en el controlador de dominio**:
+
+```powershell
+Get-Service NTDS,ADWS,DNS -ErrorAction SilentlyContinue | Select-Object Name,Status,StartType
+```
+
+Comprueba si los servicios presentes muestran estado `Running`. Si el comando anterior se ejecutó en el servidor SQL, aún sin unir, repite `Get-ADDomain` en el controlador de dominio. Los cmdlets del módulo Active Directory se comunican con los servicios de Active Directory; un error de servidor no operativo requiere comprobar la conexión y los servicios antes de continuar.
+
+Cuando la consulta devuelva valores, usa **DNSRoot** en la ventana de unión, no un nombre NetBIOS abreviado. No añadas un sufijo como `.local` por suposición.
+
+Desde el servidor SQL, comprueba que el DNS preferido devuelve el registro SRV LDAP del dominio, sustituyendo el marcador por el valor real de **DNSRoot**:
 
 ```cmd
 nslookup -type=SRV _ldap._tcp.dc._msdcs.<DNSRoot>
 ```
 
-La respuesta debe incluir uno o más registros SRV que señalen a un controlador de dominio. Si no aparece esa respuesta, comprueba que el DNS preferido del servidor SQL es el DNS del dominio y revisa la zona y los registros SRV en el controlador de dominio. Microsoft recomienda verificar la resolución DNS y esos registros al diagnosticar errores de unión.
+La respuesta debe incluir uno o más registros SRV que señalen a un controlador de dominio. Si no aparecen, comprueba qué DNS está configurado y revisa la zona y los registros SRV en el controlador.
 
-**Estado:** pendiente de comprobar DNSRoot y la respuesta SRV antes de volver a intentarlo.
+**Estado:** pendiente identificar dónde falló `Get-ADDomain`, comprobar los servicios y obtener la respuesta SRV antes de reintentar la unión.
 
 ### 4. Confirmar la unión al dominio
 
@@ -91,5 +101,6 @@ La instalación de SQL Server 2025 Developer, la selección de la cuenta o grupo
 - [Recomendaciones para la configuración de clientes DNS](https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/best-practices-for-dns-client-settings).
 - [Solucionar errores de red al unir equipos a un dominio](https://learn.microsoft.com/es-es/troubleshoot/windows-server/active-directory/domain-join-networking-errors).
 - [Comprobar los registros DNS SRV de Active Directory](https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/verify-srv-dns-records-have-been-created).
+- [Especificar un servidor y puerto para los cmdlets de Active Directory](https://learn.microsoft.com/en-us/troubleshoot/windows-server/active-directory/specify-server-port-active-directory-powershell-cmdlet).
 - [Instalar SQL Server desde el asistente gráfico](https://learn.microsoft.com/es-es/sql/database-engine/install-windows/install-sql-server-from-the-installation-wizard-setup?view=sql-server-ver17).
 - [Configurar cuentas de servicio y permisos de SQL Server](https://learn.microsoft.com/es-es/sql/database-engine/configure-windows/configure-windows-service-accounts-and-permissions?view=sql-server-ver17).
