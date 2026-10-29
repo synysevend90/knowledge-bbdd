@@ -8,28 +8,28 @@
 <main class="page"><div class="crumb"><a href="../../index.html">Inicio</a><span>/</span><a href="../">SQL Server</a><span>/</span><span>Instalación con Active Directory</span></div>
 <div class="article-layout"><aside class="rail"><a href="../">← Índice SQL Server</a><span>Instalación</span></aside>
 <article class="article"><p class="eyebrow">SQL Server / Instalación</p><h1>Instalación de SQL Server 2025 Developer con Active Directory</h1>
-<div class="article-meta">Preparación del servidor documentada · Unión al dominio pendiente</div>
+<div class="article-meta">Solicitud de credenciales para unirse al dominio</div>
 <div class="source-content">
 <p>Guía para instalar SQL Server 2025 Enterprise Developer en un servidor Windows nuevo, unido como miembro a un dominio existente. El controlador de dominio está en otra máquina. El objetivo es completar la instalación y comprobar una conexión al motor con autenticación de Windows usando una identidad del dominio.</p>
-<div class="guide-status"><strong>Estado:</strong> las capturas confirman el sistema operativo, el cambio de nombre y la configuración inicial de red. La unión al dominio todavía no se ha realizado. Antes de continuar, hay que corregir y verificar DNS.</div>
+<div class="guide-status"><strong>Estado:</strong> el servidor tiene una dirección DNS preferida y el DNS alternativo está vacío. Windows ha mostrado el cuadro de credenciales para unirse al dominio; la pertenencia todavía no está confirmada. Los nombres del entorno y las IP privadas se omiten en esta copia pública.</div>
 <h2>Alcance y entorno observado</h2>
-<ul><li>Producto previsto: SQL Server 2025 Enterprise Developer, para desarrollo y pruebas.</li><li>Destino: servidor Windows nuevo, miembro de un dominio existente.</li><li>Controlador de dominio: equipo separado.</li><li>Sistema observado: Windows Server 2022 Datacenter Evaluation, versión 21H2, compilación 20348.587.</li><li>El servidor todavía aparece en el grupo de trabajo <code>WORKGROUP</code>.</li><li>La tarjeta Ethernet tiene IPv4 manual. Las direcciones internas del laboratorio y los nombres de equipo se omiten en esta publicación.</li></ul>
+<ul><li>Producto previsto: SQL Server 2025 Enterprise Developer, para desarrollo y pruebas.</li><li>Destino: servidor Windows nuevo, miembro de un dominio existente.</li><li>Controlador de dominio: equipo separado.</li><li>Sistema observado: Windows Server 2022 Datacenter Evaluation, versión 21H2, compilación 20348.587.</li><li>En la pantalla de pertenencia se seleccionó un dominio; su nombre se omite en esta publicación.</li><li>IPv4 está configurado manualmente. La última captura muestra un DNS preferido y el campo DNS alternativo vacío; se omiten las IP privadas.</li><li>Seguridad de Windows solicita credenciales para continuar. Aún no aparece una confirmación de unión.</li></ul>
 <h2>1. Comprobar el sistema y cambiar el nombre</h2>
 <p>En <strong>Configuración &gt; Sistema &gt; Acerca de</strong>, comprueba la edición y versión de Windows. Selecciona <strong>Cambiar el nombre de este equipo</strong>, introduce el nombre elegido para el servidor y pulsa <strong>Siguiente</strong>. Windows ofrece reiniciar ahora o más tarde para aplicar el cambio.</p>
 <p>La pantalla posterior muestra el nombre nuevo aplicado. Se añadirá una captura anonimizada antes de publicar imágenes.</p>
 <p><strong>Resultado observado:</strong> Windows Server 2022 Datacenter Evaluation, versión 21H2, compilación 20348.587. El nombre nuevo aparece aplicado en la pantalla posterior.</p>
 <h2>2. Revisar la configuración de red y DNS</h2>
 <p>Abre <strong>Configuración &gt; Red e Internet &gt; Estado &gt; Cambiar opciones del adaptador</strong>. En las propiedades de <strong>Ethernet</strong>, selecciona <strong>Protocolo de Internet versión 4 (TCP/IPv4)</strong> y pulsa <strong>Propiedades</strong>.</p>
-<p>La pantalla compartida muestra una configuración IPv4 manual. Los valores concretos no se publican porque son direcciones internas del laboratorio. Antes de unir el servidor, configura como DNS preferido un DNS que aloje o pueda resolver la zona DNS de Active Directory. No asumas que la puerta de enlace también presta DNS; compruébalo en el controlador de dominio.</p>
-<p>El DNS alternativo observado es <code>127.0.0.1</code>, que apunta al propio servidor SQL. Como este equipo será miembro del dominio y no el servidor DNS, elimina ese valor. Si hay un segundo DNS que resuelve la zona de Active Directory, usa su dirección; si solo hay uno, deja el campo alternativo vacío.</p>
-<div class="guide-status"><strong>Estado:</strong> pendiente corregir y verificar DNS antes de continuar.</div>
+<p>La última captura muestra una dirección DNS preferida configurada y el DNS alternativo vacío. Las direcciones concretas se omiten porque son IP privadas del laboratorio. La captura por sí sola no identifica qué servidor hay detrás de esa dirección; debe corresponder al DNS que resuelve la zona de Active Directory.</p>
+<p><strong>Resultado observado:</strong> DNS alternativo vacío. La pantalla posterior de solicitud de credenciales muestra que se ha avanzado al siguiente paso.</p>
 <h2>3. Abrir la configuración de pertenencia</h2>
 <p>En <strong>Configuración &gt; Sistema &gt; Acerca de</strong>, abre <strong>Configuración avanzada del sistema</strong>. En <strong>Propiedades del sistema &gt; Nombre de equipo</strong>, selecciona <strong>Cambiar</strong>. En la ventana <strong>Cambios en el dominio o el nombre del equipo</strong>, selecciona <strong>Dominio</strong>.</p>
-<p>La última pantalla muestra el campo del dominio vacío. No se ha confirmado ninguna unión. Cuando DNS esté corregido, escribe el nombre DNS completo del dominio existente y continúa con credenciales autorizadas para unir equipos. Windows confirmará la pertenencia y solicitará reiniciar.</p>
-<div class="guide-status"><strong>Estado:</strong> preparado; la unión todavía no se ha ejecutado.</div>
+<p>En <strong>Cambios en el dominio o el nombre del equipo</strong>, se seleccionó <strong>Dominio</strong> y se escribió el nombre del dominio del laboratorio. Windows abrió después <strong>Seguridad de Windows</strong>, que solicita el usuario y la contraseña de una cuenta con permiso para unir equipos.</p>
+<p>La solicitud de credenciales no confirma que la unión haya terminado. Introduce en esa ventana las credenciales autorizadas; no las compartas en el chat ni en capturas. Si se aceptan, Windows mostrará un mensaje de bienvenida o confirmación y pedirá reiniciar.</p>
+<div class="guide-status"><strong>Estado:</strong> esperando el resultado de la autenticación.</div>
 <h2>4. Confirmar la unión al dominio</h2>
-<p>Después del reinicio, inicia sesión con una cuenta autorizada y comprueba en las propiedades del sistema que el servidor pertenece al dominio correcto. Se anotarán el resultado y la identidad usada, sin publicar contraseñas ni datos privados.</p>
-<p><strong>Estado:</strong> pendiente.</p>
+<p>Cuando Windows confirme la unión, acepta el mensaje y reinicia el servidor cuando lo solicite. Tras reiniciar, inicia sesión con una cuenta autorizada del dominio y comprueba en las propiedades del sistema que el equipo pertenece al dominio.</p>
+<p><strong>Estado:</strong> pendiente de recibir confirmación de Windows y completar el reinicio.</p>
 <h2>5. Instalar SQL Server y comprobar el acceso</h2>
 <p>La instalación de SQL Server 2025 Developer, la selección de una cuenta o grupo de Active Directory como administrador del motor, la instalación de SSMS y la conexión con autenticación de Windows se documentarán cuando se realicen en este servidor.</p>
 <p><strong>Estado:</strong> pendiente.</p>
