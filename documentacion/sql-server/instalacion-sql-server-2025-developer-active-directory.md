@@ -1,6 +1,6 @@
 # Instalación de SQL Server 2025 Developer en un servidor unido a Active Directory
 
-> **Estado: solicitud de credenciales para unirse al dominio.** El servidor tiene una dirección DNS preferida y el DNS alternativo está vacío. Windows ha mostrado el cuadro de credenciales; la pertenencia al dominio todavía no está confirmada. Los nombres del entorno y las IP privadas se omiten en esta copia pública.
+> **Estado: unión al dominio fallida; diagnóstico DNS/nombre pendiente.** Tras enviar las credenciales, Windows indicó que el dominio no existe o no se pudo contactar. El servidor sigue sin pertenecer al dominio. El nombre y las IP privadas se omiten en esta copia pública.
 
 ## Objetivo y alcance
 
@@ -16,7 +16,7 @@ La guía previa de instalación sin dominio se conserva como referencia independ
 - Adaptador: Ethernet.
 - En la pantalla de configuración de pertenencia se seleccionó un dominio; su nombre se omite en la copia pública.
 - Se configuró manualmente IPv4. La última captura muestra un DNS preferido y el campo DNS alternativo vacío; se omiten las direcciones privadas.
-- El cuadro de seguridad de Windows solicita las credenciales para continuar. No aparece aún un mensaje de unión completada.
+- Windows mostró el cuadro de credenciales y, después de enviarlas, informó que no pudo encontrar o contactar el dominio.
 
 ## Procedimiento
 
@@ -40,11 +40,29 @@ La última captura muestra una dirección DNS preferida configurada y el DNS alt
 
 En **Configuración > Sistema > Acerca de**, abre **Configuración avanzada del sistema**. En **Propiedades del sistema > Nombre de equipo**, selecciona **Cambiar**. En la ventana **Cambios en el dominio o el nombre del equipo**, selecciona **Dominio**.
 
-En la ventana **Cambios en el dominio o el nombre del equipo**, se seleccionó **Dominio** y se escribió el nombre del dominio del laboratorio. Windows abrió después **Seguridad de Windows**, que solicita el usuario y la contraseña de una cuenta con permiso para unir equipos.
+En la ventana **Cambios en el dominio o el nombre del equipo**, se seleccionó **Dominio** y se escribió el nombre del entorno. Después de enviar las credenciales, Windows mostró el error: el dominio no existe o no se pudo contactar. La unión **no se completó**.
 
-La solicitud de credenciales no confirma que la unión haya terminado. Introduce en esa ventana las credenciales autorizadas; no las compartas en el chat ni en capturas. Si la autenticación se acepta, Windows mostrará un mensaje de bienvenida o confirmación y pedirá reiniciar.
+Este mensaje no permite concluir por sí solo que la contraseña sea incorrecta. Hay que comprobar que se escribió el nombre DNS del dominio y que el DNS del servidor puede encontrar los registros de localización del controlador de dominio.
 
-**Estado:** esperando el resultado de la autenticación.
+### Diagnosticar el nombre y la resolución DNS
+
+En el controlador de dominio, abre PowerShell y consulta los nombres DNS y NetBIOS reales del dominio:
+
+```powershell
+Get-ADDomain | Select-Object DNSRoot, NetBIOSName
+```
+
+En la ventana de unión debe usarse el valor **DNSRoot**, no un nombre NetBIOS abreviado. No añadas un sufijo como `.local` por suposición; utiliza el valor devuelto por el controlador de dominio.
+
+Después, desde el servidor SQL, comprueba si el DNS preferido devuelve el registro SRV LDAP del dominio, sustituyendo el marcador por el valor real de **DNSRoot**:
+
+```cmd
+nslookup -type=SRV _ldap._tcp.dc._msdcs.<DNSRoot>
+```
+
+La respuesta debe incluir uno o más registros SRV que señalen a un controlador de dominio. Si no aparece esa respuesta, comprueba que el DNS preferido del servidor SQL es el DNS del dominio y revisa la zona y los registros SRV en el controlador de dominio. Microsoft recomienda verificar la resolución DNS y esos registros al diagnosticar errores de unión.
+
+**Estado:** pendiente de comprobar DNSRoot y la respuesta SRV antes de volver a intentarlo.
 
 ### 4. Confirmar la unión al dominio
 
@@ -71,5 +89,7 @@ La instalación de SQL Server 2025 Developer, la selección de la cuenta o grupo
 
 - [Unir un equipo a un dominio](https://learn.microsoft.com/es-es/windows-server/identity/ad-ds/manage/join-computer-to-domain).
 - [Recomendaciones para la configuración de clientes DNS](https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/best-practices-for-dns-client-settings).
+- [Solucionar errores de red al unir equipos a un dominio](https://learn.microsoft.com/es-es/troubleshoot/windows-server/active-directory/domain-join-networking-errors).
+- [Comprobar los registros DNS SRV de Active Directory](https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/verify-srv-dns-records-have-been-created).
 - [Instalar SQL Server desde el asistente gráfico](https://learn.microsoft.com/es-es/sql/database-engine/install-windows/install-sql-server-from-the-installation-wizard-setup?view=sql-server-ver17).
 - [Configurar cuentas de servicio y permisos de SQL Server](https://learn.microsoft.com/es-es/sql/database-engine/configure-windows/configure-windows-service-accounts-and-permissions?view=sql-server-ver17).
