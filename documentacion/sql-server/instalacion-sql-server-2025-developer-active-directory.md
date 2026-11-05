@@ -1,106 +1,98 @@
-# Instalación de SQL Server 2025 Developer en un servidor unido a Active Directory
+# SQL Server 2025 Enterprise Developer en un servidor miembro de Active Directory
 
-> **Estado: unión al dominio fallida; diagnóstico DNS/nombre pendiente.** Tras enviar las credenciales, Windows indicó que el dominio no existe o no se pudo contactar. El servidor sigue sin pertenecer al dominio. El nombre y las IP privadas se omiten en esta copia pública.
+> **Guía verificada:** el servidor se unió al dominio, SQL Server terminó de instalarse correctamente y SSMS conectó a la instancia. Se han anonimizado las cuentas, rutas de registro y datos internos visibles en las capturas.
 
-## Objetivo y alcance
+## Objetivo y entorno
 
-Instalar SQL Server 2025 Enterprise Developer en un servidor Windows nuevo, unido como **servidor miembro** a un dominio de Active Directory existente. El controlador de dominio estará en otra máquina. El uso de Developer es para desarrollo y pruebas, no para producción.
+Instalación de SQL Server 2025 Enterprise Developer en Windows Server 2022 Datacenter Evaluation (21H2, compilación 20348.587), en un servidor miembro de un dominio cuyo controlador reside en otro equipo.
 
-La guía previa de instalación sin dominio se conserva como referencia independiente. Este procedimiento se completará desde la preparación del nuevo servidor hasta la conexión al motor mediante una identidad del dominio.
+Se instaló únicamente **Servicios de Motor de base de datos**, en la instancia con nombre `MSSQLSERVERCONAD`. Se instaló SSMS 22.11.3. Developer se usa solo para desarrollo y pruebas, nunca producción.
 
-## Entorno observado
+## 1. Preparar el servidor y unirlo al dominio
 
-- Sistema operativo: Windows Server 2022 Datacenter Evaluation.
-- Versión: 21H2.
-- Compilación mostrada: 20348.587.
-- Adaptador: Ethernet.
-- En la pantalla de configuración de pertenencia se seleccionó un dominio; su nombre se omite en la copia pública.
-- Se configuró manualmente IPv4. La última captura muestra un DNS preferido y el campo DNS alternativo vacío; se omiten las direcciones privadas.
-- Windows mostró el cuadro de credenciales y, después de enviarlas, informó que no pudo encontrar o contactar el dominio.
+### Nombre e IP
 
-## Procedimiento
+En **Configuración > Sistema > Acerca de**, cambia el nombre del servidor y reinicia. Asigna IPv4 estática y configura como DNS preferido el servidor DNS del controlador de dominio.
 
-### 1. Comprobar el sistema y cambiar el nombre del equipo
+Ruta de red utilizada: **Configuración > Red e Internet > Estado > Cambiar opciones del adaptador > Ethernet > Propiedades > Protocolo de Internet versión 4 (TCP/IPv4) > Propiedades**.
 
-En **Configuración > Sistema > Acerca de**, se comprobó la edición de Windows Server. En esa página, selecciona **Cambiar el nombre de este equipo**, introduce el nombre elegido para el servidor y pulsa **Siguiente**. Windows ofrece reiniciar ahora o más tarde para aplicar el cambio.
+Durante el diagnóstico, el servidor también tenía una dirección DNS IPv6 hacia otro resolvedor. Se retiró para que las consultas de Active Directory usaran el DNS del dominio. No uses un DNS público o el router como DNS preferido en el miembro.
 
-La captura posterior muestra el nuevo nombre en la configuración del sistema. El nombre interno se omite aquí; se incorporará una captura anonimizada antes de publicar imágenes.
+### Verificar DNS
 
-**Resultado observado:** Windows Server 2022 Datacenter Evaluation, versión 21H2, compilación 20348.587. El nombre nuevo aparece aplicado en la pantalla posterior.
-
-### 2. Revisar la configuración de red
-
-En **Configuración > Red e Internet > Estado > Cambiar opciones del adaptador**, abre las propiedades de **Ethernet**. Selecciona **Protocolo de Internet versión 4 (TCP/IPv4)** y pulsa **Propiedades**.
-
-La última captura muestra una dirección DNS preferida configurada y el DNS alternativo vacío. Las direcciones concretas se omiten porque son IP privadas del laboratorio. La captura por sí sola no identifica qué servidor hay detrás de esa dirección; debe corresponder al DNS que resuelve la zona de Active Directory. La pantalla posterior, donde Windows solicita las credenciales de unión, muestra que se ha avanzado al siguiente paso.
-
-**Resultado observado:** DNS alternativo vacío. Valores de IP anonimizados en la copia pública.
-
-### 3. Abrir la configuración de pertenencia
-
-En **Configuración > Sistema > Acerca de**, abre **Configuración avanzada del sistema**. En **Propiedades del sistema > Nombre de equipo**, selecciona **Cambiar**. En la ventana **Cambios en el dominio o el nombre del equipo**, selecciona **Dominio**.
-
-En la ventana **Cambios en el dominio o el nombre del equipo**, se seleccionó **Dominio** y se escribió el nombre del entorno. Después de enviar las credenciales, Windows mostró el error: el dominio no existe o no se pudo contactar. La unión **no se completó**.
-
-Este mensaje no permite concluir por sí solo que la contraseña sea incorrecta. Hay que comprobar que se escribió el nombre DNS del dominio y que el DNS del servidor puede encontrar los registros de localización del controlador de dominio.
-
-### Diagnosticar la consulta de Active Directory y el DNS
-
-La consulta siguiente se intentó ejecutar desde PowerShell:
-
-```powershell
-Get-ADDomain | Select-Object DNSRoot, NetBIOSName
-```
-
-La captura muestra una excepción `ADException`, con identificador `ActiveDirectoryServer:8250` y el mensaje **El servidor no es funcional**. El resultado no incluye DNSRoot ni NetBIOSName. La captura no permite confirmar en qué equipo se ejecutó PowerShell, por lo que todavía no se puede distinguir si el comando se ejecutó desde el servidor SQL sin unir o desde el propio controlador de dominio.
-
-Primero, ejecuta esta comprobación en PowerShell **en el controlador de dominio**:
-
-```powershell
-Get-Service NTDS,ADWS,DNS -ErrorAction SilentlyContinue | Select-Object Name,Status,StartType
-```
-
-Comprueba si los servicios presentes muestran estado `Running`. Si el comando anterior se ejecutó en el servidor SQL, aún sin unir, repite `Get-ADDomain` en el controlador de dominio. Los cmdlets del módulo Active Directory se comunican con los servicios de Active Directory; un error de servidor no operativo requiere comprobar la conexión y los servicios antes de continuar.
-
-Cuando la consulta devuelva valores, usa **DNSRoot** en la ventana de unión, no un nombre NetBIOS abreviado. No añadas un sufijo como `.local` por suposición.
-
-Desde el servidor SQL, comprueba que el DNS preferido devuelve el registro SRV LDAP del dominio, sustituyendo el marcador por el valor real de **DNSRoot**:
+Desde el servidor miembro, sustituye `<dominio-dns>` por el nombre DNS real:
 
 ```cmd
-nslookup -type=SRV _ldap._tcp.dc._msdcs.<DNSRoot>
+nslookup -type=SRV _ldap._tcp.dc._msdcs.<dominio-dns>
+nltest /dsgetdc:<dominio-dns> /force
 ```
 
-La respuesta debe incluir uno o más registros SRV que señalen a un controlador de dominio. Si no aparecen, comprueba qué DNS está configurado y revisa la zona y los registros SRV en el controlador.
+La primera consulta debe devolver registros SRV del controlador; la segunda debe localizarlo. En el laboratorio, ambas respondieron correctamente después de corregir DNS.
 
-**Estado:** pendiente identificar dónde falló `Get-ADDomain`, comprobar los servicios y obtener la respuesta SRV antes de reintentar la unión.
+### Completar la unión
 
-### 4. Confirmar la unión al dominio
+El primer intento falló al contactar con el dominio. Más tarde apareció un error de SID duplicado. Se ejecutó Sysprep con generalización en el servidor miembro; tras reiniciarlo, se repitió la unión. No ejecutes Sysprep en el controlador de dominio.
 
-Cuando Windows confirme la unión, acepta el mensaje y reinicia el servidor cuando lo solicite. Tras reiniciar, inicia sesión con una cuenta autorizada del dominio y comprueba en las propiedades del sistema que el equipo pertenece al dominio.
+Abre **Configuración > Sistema > Acerca de > Configuración avanzada del sistema > Nombre de equipo > Cambiar**. Selecciona **Dominio**, escribe el nombre DNS completo del dominio y proporciona credenciales autorizadas para unir equipos. Acepta la confirmación y reinicia.
 
-**Estado:** pendiente de recibir confirmación de Windows y completar el reinicio.
+**Comprobación:** el servidor SQL quedó unido como miembro. El controlador de dominio permaneció en otro equipo. El error anterior de `Get-ADDomain` (`ActiveDirectoryServer:8250`, “El servidor no es funcional”) no proporcionó DNSRoot ni NetBIOSName; la resolución DNS y `nltest` fueron las comprobaciones que confirmaron que el miembro ya localizaba el controlador.
 
-### 5. Instalar SQL Server y verificar el acceso de dominio
+## 2. Instalar SQL Server 2025
 
-La instalación de SQL Server 2025 Developer, la selección de la cuenta o grupo de Active Directory como administrador del motor, la instalación de SSMS y la conexión con autenticación de Windows se documentarán cuando se realicen en este servidor.
+En el Centro de instalación de SQL Server, abre **Instalación > Nueva instalación independiente de SQL Server o agregar características a una instalación existente**.
 
-**Estado:** pendiente.
+### Edición, licencia y opciones
 
-## Criterios para dar la guía por finalizada
+En **Edición**, elige **Enterprise Developer** bajo las ediciones gratuitas. Acepta los términos. Microsoft Update se dejó desactivado y la **Extensión de Azure para SQL Server** se desmarcó, porque no se configuraría administración híbrida.
 
-- El equipo SQL consta como miembro del dominio correcto; no se convierte en controlador de dominio.
-- DNS permite localizar el controlador de dominio.
-- La instalación del motor termina correctamente y la instancia queda identificada.
-- Una identidad de dominio autorizada puede iniciar sesión en SQL Server mediante autenticación de Windows.
-- Las imágenes publicadas están anonimizadas y no exponen contraseñas, identificadores de dispositivo, nombres internos ni direcciones privadas del laboratorio.
-- Cada paso está respaldado por una pantalla o una comprobación confirmada.
+### Características e instancia
 
-## Referencias oficiales
+En **Selección de características**, marca solo **Servicios de Motor de base de datos**. Conserva las rutas predeterminadas si son adecuadas para el almacenamiento disponible.
 
-- [Unir un equipo a un dominio](https://learn.microsoft.com/es-es/windows-server/identity/ad-ds/manage/join-computer-to-domain).
-- [Recomendaciones para la configuración de clientes DNS](https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/best-practices-for-dns-client-settings).
-- [Solucionar errores de red al unir equipos a un dominio](https://learn.microsoft.com/es-es/troubleshoot/windows-server/active-directory/domain-join-networking-errors).
-- [Comprobar los registros DNS SRV de Active Directory](https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/verify-srv-dns-records-have-been-created).
-- [Especificar un servidor y puerto para los cmdlets de Active Directory](https://learn.microsoft.com/en-us/troubleshoot/windows-server/active-directory/specify-server-port-active-directory-powershell-cmdlet).
-- [Instalar SQL Server desde el asistente gráfico](https://learn.microsoft.com/es-es/sql/database-engine/install-windows/install-sql-server-from-the-installation-wizard-setup?view=sql-server-ver17).
-- [Configurar cuentas de servicio y permisos de SQL Server](https://learn.microsoft.com/es-es/sql/database-engine/configure-windows/configure-windows-service-accounts-and-permissions?view=sql-server-ver17).
+En **Configuración de instancia**, selecciona **Instancia con nombre** y escribe `MSSQLSERVERCONAD`. Conserva el directorio predeterminado si no dispones de una unidad de datos separada.
+
+### Servicios y autenticación
+
+Se conservaron las cuentas predeterminadas del instalador. El Motor de base de datos quedó en inicio automático; SQL Server Agent, en inicio manual; SQL Server Browser, deshabilitado. Se concedió al motor el privilegio de mantenimiento de volúmenes para permitir la inicialización instantánea de archivos.
+
+En **Configuración del Motor de base de datos**, se eligió **Modo mixto (autenticación de SQL Server y de Windows)**, se definió una contraseña para `sa` y se agregó la cuenta autorizada del dominio como administradora de SQL Server. La captura de esa pantalla tiene la contraseña y la identidad de dominio ocultas. Revisa que la lista de administradores no contenga entradas duplicadas.
+
+### Instalar y comprobar
+
+En **Listo para instalar**, verifica edición, instancia y características, y pulsa **Instalar**. La operación terminó correctamente: el resumen marcó como correctos el Motor de base de datos, SQL Browser, el objeto de escritura de SQL y los archivos auxiliares del programa de configuración.
+
+## 3. Instalar SSMS
+
+Descarga SSMS desde [Microsoft Learn](https://learn.microsoft.com/es-es/ssms/install/install). El instalador de SSMS 22 abre Visual Studio Installer. Conserva los componentes principales; en esta instalación se desmarcó la carga opcional **Híbrido y migración**. Se instaló SSMS 22.11.3.
+
+## 4. Conectar y verificar
+
+En SSMS, selecciona **Conectar > Motor de base de datos** e introduce:
+
+- **Nombre del servidor:** `localhost\\MSSQLSERVERCONAD`
+- **Autenticación:** SQL Server
+- **Usuario:** `sa`
+- **Contraseña:** la establecida durante la instalación
+- **Cifrar:** obligatorio
+- **Certificado de servidor de confianza:** activado para esta conexión local de laboratorio
+
+Pulsa **Conectar**. La contraseña aparece enmascarada en la captura. También se puede usar autenticación de Windows con la cuenta de dominio agregada a los administradores del motor.
+
+**Resultado comprobado:** SSMS conectó a `localhost\\MSSQLSERVERCONAD` y el Explorador de objetos mostró las bases de datos, la seguridad y los objetos del servidor.
+
+## Incidencias y notas
+
+- **No se encuentra el dominio:** comprueba el DNS preferido, los registros SRV y la localización con `nltest`. El mensaje no demuestra por sí solo que las credenciales sean incorrectas.
+- **SID duplicado:** se resolvió generalizando con Sysprep el miembro y repitiendo la unión. No se hizo en el controlador.
+- **Certificado de SSMS:** confiar en el certificado se usó para el laboratorio local. En producción, configura un certificado válido y valida la identidad del servidor.
+- **SQL Server Agent con XPs deshabilitadas:** el servicio quedó en inicio manual; actívalo si necesitas trabajos programados.
+- **Developer:** licencia de desarrollo y pruebas, no producción.
+
+## Referencias
+
+- [Unir un equipo a un dominio](https://learn.microsoft.com/es-es/windows-server/identity/ad-ds/manage/join-computer-to-domain)
+- [Recomendaciones DNS para clientes](https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/best-practices-for-dns-client-settings)
+- [Comprobar registros SRV de Active Directory](https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/verify-srv-dns-records-have-been-created)
+- [Instalar SQL Server desde el asistente](https://learn.microsoft.com/es-es/sql/database-engine/install-windows/install-sql-server-from-the-installation-wizard-setup?view=sql-server-ver17)
+- [Configurar cuentas de servicio de SQL Server](https://learn.microsoft.com/es-es/sql/database-engine/configure-windows/configure-windows-service-accounts-and-permissions?view=sql-server-ver17)
+- [Instalar SSMS](https://learn.microsoft.com/es-es/ssms/install/install)
