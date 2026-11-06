@@ -33,7 +33,15 @@ La primera consulta debe devolver registros SRV del controlador; la segunda debe
 
 El primer intento falló al contactar con el dominio. Más tarde apareció un error de SID duplicado. Se ejecutó Sysprep con generalización en el servidor miembro; tras reiniciarlo, se repitió la unión. No ejecutes Sysprep en el controlador de dominio.
 
-Abre **Configuración > Sistema > Acerca de > Configuración avanzada del sistema > Nombre de equipo > Cambiar**. Selecciona **Dominio**, escribe el nombre DNS completo del dominio y proporciona credenciales autorizadas para unir equipos. Acepta la confirmación y reinicia.
+Abre **Configuración > Sistema > Acerca de > Configuración avanzada del sistema > Nombre de equipo > Cambiar**. Selecciona **Dominio**, escribe el nombre DNS completo del dominio y pulsa **Aceptar**. Cuando Windows solicite credenciales, introduce una cuenta autorizada para unir equipos. Acepta la confirmación y reinicia.
+
+![Ventana de pertenencia al dominio; nombre del equipo y dominio sustituidos por ejemplos](../../pages-overlay/site/sql-server/instalacion-sql-server-2025-developer-active-directory/images/00-union-dominio-configuracion.png)
+
+*Selecciona **Dominio**, escribe el FQDN del entorno y confirma. La captura muestra también la solicitud de credenciales de Windows; los identificadores se han anonimizado.*
+
+![Confirmación de que el servidor se unió correctamente a un dominio de ejemplo](../../pages-overlay/site/sql-server/instalacion-sql-server-2025-developer-active-directory/images/00-union-dominio-confirmada.png)
+
+*Después del reinicio, Windows confirma que la unión se completó.*
 
 **Comprobación:** el servidor SQL quedó unido como miembro. El controlador de dominio permaneció en otro equipo. El error anterior de `Get-ADDomain` (`ActiveDirectoryServer:8250`, “El servidor no es funcional”) no proporcionó DNSRoot ni NetBIOSName; la resolución DNS y `nltest` fueron las comprobaciones que confirmaron que el miembro ya localizaba el controlador.
 
